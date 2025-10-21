@@ -16,7 +16,7 @@ It demonstrates how SQL can be used for descriptive data analysis and insights g
 
 
 
--- 1st Objective
+-- 1st Objective - Rank the ten best-selling games.
 
 SELECT * FROM Video_Games_Sales_as_at_22_Dec_2016
 ORDER BY global_sales DESC
