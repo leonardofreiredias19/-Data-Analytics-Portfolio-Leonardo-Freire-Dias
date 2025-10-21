@@ -1,4 +1,4 @@
-# 📊 Data Analytics Portfolio | Léo Dias
+# 📊 Data Analytics Portfolio | Leonardo Freire Dias
 
 Welcome to my Data Analytics project portfolio. This repository serves as a central hub for my scripts, analyses, and solutions focused on transforming data into business insights and effective strategies.
 
