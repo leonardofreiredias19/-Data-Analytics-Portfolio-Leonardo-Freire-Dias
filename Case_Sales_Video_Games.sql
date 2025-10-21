@@ -6,7 +6,7 @@ This project analyzes the Video Games Sales as at 22 Dec 2016 dataset using SQL.
 The goal is to explore sales performance and critical reception through six analytical objectives — ranking top-selling games, identifying publisher, platform, and genre shares, and finding games with the highest critic scores.
 It demonstrates how SQL can be used for descriptive data analysis and insights generation.
 
-1st Objective - Rank the ten best-selling games.
+1st Objective - Rank the fifty best-selling games.
 2nd Objective - Identify how much each publisher represents in the sample (in%)
 3rd Objective - Identify how much each platform represents in the sample (in%)
 4th Objective - Identify how much each genre represents in the sample (in%) 
@@ -16,7 +16,7 @@ It demonstrates how SQL can be used for descriptive data analysis and insights g
 
 
 
--- 1st Objective - Rank the ten best-selling games.
+-- 1st Objective - Rank the fifty best-selling games.
 
 SELECT * FROM Video_Games_Sales_as_at_22_Dec_2016
 ORDER BY global_sales DESC
