@@ -76,7 +76,7 @@ With top50 AS (
     GROUP BY genre
     ORDER BY porcentagem DESC;
     
- -- 5th Objective - Identify the game with the highest critic score    
+ -- 5th Objective - Identify the top 5 best-selling games with the highest critic scores     
 
 
 WITH top50 AS (
