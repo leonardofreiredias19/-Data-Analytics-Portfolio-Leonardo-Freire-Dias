@@ -121,4 +121,5 @@ SELECT
 -- 4. CONTEXTUAL GROWTH
 -- This concentration of size in China is contextualized by the sector's massive growth.
 -- The Chinese banking sector experienced a growth rate of nearly 10% year-over-year in 2022,
--- surpassing pre-COVID growth rates (2018 and 2019). https://www.ey.com/content/dam/ey-unified-site/ey-com/en-cn/newsroom/2023/5/documents/ey-listed-banks-in-china-2022-review-and-outlook-en.pdf
+-- surpassing pre-COVID growth rates (2018 and 2019). 
+-- https://www.ey.com/content/dam/ey-unified-site/ey-com/en-cn/newsroom/2023/5/documents/ey-listed-banks-in-china-2022-review-and-outlook-en.pdf
