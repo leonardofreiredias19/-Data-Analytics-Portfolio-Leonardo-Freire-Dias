@@ -110,3 +110,54 @@ WITH top50 AS (
  ORDER BY Critic_Score DESC
  LIMIT 1;
  
+
+/*******************************************************************************
+** FINAL ANALYSIS AND INSIGHTS - VIDEO GAMES SALES DATASET
+** This commentary summarizes the key findings and market insights from the analysis.
+*******************************************************************************/
+
+-- 1. TOP 50 BEST-SELLING GAMES  
+-- The dataset was filtered to identify the 50 best-selling video games worldwide.  
+-- This ranking provides a solid foundation for understanding the industry's top-performing titles and franchises.
+
+-- 2. PUBLISHER DOMINANCE  
+-- The analysis reveals that Nintendo is the undisputed leader among publishers, 
+-- accounting for 32 out of the 50 top-selling games — an impressive 64% share.  
+-- It is followed by Activision (16%), Take-Two Interactive (12%), Sony Computer Entertainment (4%), 
+-- and Microsoft Game Studios (4%).  
+-- This result reinforces Nintendo’s long-term dominance and brand power, driven by iconic franchises 
+-- such as Mario, Pokémon, and The Legend of Zelda.
+
+-- 3. PLATFORM DISTRIBUTION  
+-- When examining platforms, the results show that Nintendo consoles (Wii, DS, 3DS, NES, SNES, N64, GBA) 
+-- together represent a large portion of the market, emphasizing the company’s strong ecosystem.  
+-- Wii and DS alone account for 36% of the top 50 games, showing their relevance during the 2000s and early 2010s.  
+-- PlayStation (PS2, PS3, PS4) holds 22%, while Xbox platforms (X360) represent 14%.  
+-- This demonstrates how console generations shaped consumer trends and highlights Nintendo’s exceptional ability 
+-- to maintain high-selling titles across multiple generations.
+
+-- 4. GENRE REPRESENTATION  
+-- The most represented genres among the top 50 are Shooter (20%), Role-Playing (16%), and Platform (16%), 
+-- followed by Action (14%) and Racing (10%).  
+-- This indicates a diversified market, where both competitive and narrative-driven experiences perform strongly.  
+-- The presence of classic genres like Platform and Role-Playing shows the sustained popularity of traditional 
+-- gameplay formats alongside modern action and shooter titles.
+
+-- 5. BEST-SELLING GAMES WITH HIGHEST CRITIC SCORES  
+-- “Grand Theft Auto V” dominates this category, appearing multiple times across different platforms (PS3, X360, PS4), 
+-- all with a critic score of 97.  
+-- This cross-platform success illustrates Take-Two Interactive’s ability to deliver consistent quality and reach 
+-- across console generations.  
+-- “Super Mario Galaxy” (Wii) also achieved a 97 score, reinforcing Nintendo’s reputation for quality in exclusive titles.  
+-- Both cases demonstrate that high sales and critical acclaim can align when innovation meets strong brand identity.
+
+-- 6. HIGHEST CRITIC SCORE OVERALL  
+-- The highest critic score in the dataset belongs to “Grand Theft Auto V” (PS3 version) with a score of 97, 
+-- confirming its status as one of the most acclaimed games of all time.  
+-- This reflects the evolution of the gaming industry, where storytelling, open-world design, and technical excellence 
+-- converge to create lasting cultural impact.
+
+-- 7. FINAL INSIGHT  
+-- The analysis shows that Nintendo dominates in quantity and heritage, while Take-Two Interactive leads in critical prestige.  
+-- This contrast reflects two distinct but successful strategies: one based on iconic franchises and platform exclusivity, 
+-- and the other on cinematic innovation and multiplatform expansion.
