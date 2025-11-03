@@ -99,11 +99,12 @@ SELECT
   Team,
   season,
   game_played,
+  Wins,
   goals_scored,
   goals_against,
+  ROUND(100.0 * Wins / game_played, 2) AS win_rate,
   ROUND(1.0 * goals_scored / game_played, 2) AS avg_goals_scored,
-  ROUND(1.0 * goals_against / game_played, 2) AS avg_goals_against,
-  ROUND(100.0 * Wins / game_played, 2) AS win_rate
+  ROUND(1.0 * goals_against / game_played, 2) AS avg_goals_against
 FROM base
 ORDER BY League, season, win_rate DESC;
 
