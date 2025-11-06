@@ -154,26 +154,27 @@ WITH player_perf AS(
   -- ===================================
   -- OFFENSIVE PERFORMANCE METRICS 
   -- ===================================  
-  AVG(pa.overall_rating) AS AVG_rating,                  -- overall player skills reating
-  AVG(pa.finishing) AS AVG_finishing,                    -- gols - scoring ability
-  AVG(pa.short_passing) AS AVG_passing,                  -- build-up play and possession
-  AVG(pa.shot_power) AS AVG_shot_power,                  -- power of shorts
-  AVG(pa.positioning) AS AVG_positioning,                -- spatial awareness in attack
+  round(CAST(AVG(pa.overall_rating) AS Float), 2) AS AVG_rating,                  -- overall player skills reating
+  round(CAST(AVG(pa.finishing) AS Float), 2) AS AVG_finishing,                    -- gols - scoring ability
+  round(CAST(AVG(pa.short_passing) AS Float), 2) AS AVG_passing,                  -- build-up play and possession
+  round(CAST(AVG(pa.shot_power) AS Float), 2) AS AVG_shot_power,                  -- power of shorts
+  round(CAST(AVG(pa.positioning) AS Float), 2) AS AVG_positioning,                -- spatial awareness in attack
   
   -- ====================================
   -- PHYSICAL PERFORMANCE METRICS 
   -- ==================================== 
   
-  AVG(pa.stamina) AS AVG_stamina,                       -- endurance across matches
-  AVG(pa.strength) AS AVG_strength,                     -- physical duels and resistance
+  round(CAST(AVG(pa.stamina) AS Float), 2) AS AVG_stamina,                       -- endurance across matches
+  round(CAST(AVG(pa.strength) AS Float), 2) AS AVG_strength,                     -- physical duels and resistance
   
   -- ====================================
   -- DEFENSIVE PERFORMANCE METRICS 
   -- ====================================  
-  AVG(pa.interceptions) AS AVG_interceptions,           -- ability to read and cut passes
-  AVG(pa.marking) AS AVG_marking,                       -- defensive discipline
-  AVG(pa.standing_tackle) AS AVG_standing_tackle,       -- controlled defensive duels
-  AVG(pa.sliding_tackle) AS AVG_sliding_tackle         -- more aggressive defensive style
+  round(CAST(AVG(pa.interceptions) AS Float), 2) AS AVG_interceptions,           -- ability to read and cut passes
+  round(CAST(AVG(pa.marking) AS Float), 2) AS AVG_marking,                       -- defensive discipline
+  round(CAST(AVG(pa.standing_tackle) AS Float), 2) AS AVG_standing_tackle,       -- controlled defensive duels
+  round(CAST(AVG(pa.sliding_tackle) AS Float), 2) AS AVG_sliding_tackle         -- more aggressive defensive style
+  
   
   FROM MATCH m
   JOIN League l ON m.league_id = l.id
