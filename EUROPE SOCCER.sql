@@ -120,3 +120,127 @@ ORDER BY League, season, win_rate DESC;
 -- The next phase will involve integrating this structured dataset into Power BI,
 -- where I will build visual dashboards to track trends in goals, wins, and consistency
 -- across multiple seasons and competitions.
+
+
+/*******************************************************************************
+** EUROPE SOCCER PLAYER PERFORMANCE ANALYSIS (2009 - 2016)
+** 
+** Purpose:
+** This SQL Script extracts and aggregates player performance indicators
+** from the Europe Soccer Dataset (SQLite), allowing for a detailed view 
+** of  individual player contributions to team outcomes across multiple seasons.
+*******************************************************************************/
+
+
+-- =============================================================================
+-- STEP 1: BUILD A BASE TABLE OF PLAYER PERFORMANCE FOR SEASON 
+-- =============================================================================
+
+WITH player_perf AS(
+  SELECT 
+  -- League and country context 
+  l.name AS League,
+  c.name As Country,
+  
+ -- Team context (each player belongs to a team in a givem match)
+  t.team_long_name AS Team,
+  
+ -- Temporal dimension
+  m.season as season,
+  
+  -- Player identification 
+  p.player_name AS Player,
+  
+  -- ===================================
+  -- OFFENSIVE PERFORMANCE METRICS 
+  -- ===================================  
+  AVG(pa.overall_rating) AS AVG_rating,                  -- overall player skills reating
+  AVG(pa.finishing) AS AVG_finishing,                    -- gols - scoring ability
+  AVG(pa.short_passing) AS AVG_passing,                  -- build-up play and possession
+  AVG(pa.shot_power) AS AVG_shot_power,                  -- power of shorts
+  AVG(pa.positioning) AS AVG_positioning,                -- spatial awareness in attack
+  
+  -- ====================================
+  -- PHYSICAL PERFORMANCE METRICS 
+  -- ==================================== 
+  
+  AVG(pa.stamina) AS AVG_stamina,                       -- endurance across matches
+  AVG(pa.strength) AS AVG_strength,                     -- physical duels and resistance
+  
+  -- ====================================
+  -- DEFENSIVE PERFORMANCE METRICS 
+  -- ====================================  
+  AVG(pa.interceptions) AS AVG_interceptions,           -- ability to read and cut passes
+  AVG(pa.marking) AS AVG_marking,                       -- defensive discipline
+  AVG(pa.standing_tackle) AS AVG_standing_tackle,       -- controlled defensive duels
+  AVG(pa.sliding_tackle) AS AVG_sliding_tackle         -- more aggressive defensive style
+  
+  FROM MATCH m
+  JOIN League l ON m.league_id = l.id
+  JOIN Country c ON l.country_id = c.id
+  JOIN Team t ON t.team_api_id IN (m.home_team_api_id, m.away_team_api_id)
+  JOIN Player p ON p.player_api_id IN (
+    -- List of home players 
+     m.home_player_1, m.home_player_2, m.home_player_3, m.home_player_4, m.home_player_5,
+     m.home_player_6, m.home_player_7, m.home_player_8, m.home_player_9, m.home_player_10, m.home_player_11,
+     -- List of away players
+     m.away_player_1, m.away_player_2, m.away_player_3, m.away_player_4, m.away_player_5,
+     m.away_player_6, m.away_player_7, m.away_player_8, m.away_player_9, m.away_player_10, m.away_player_11
+    )
+  JOIN Player_Attributes pa ON p.player_api_id = pa.player_api_id
+  
+  -- Group by season, team, and player to create a clear season-by-season view
+  GROUP BY l.name, c.name, t.team_long_name, m.season, p.player_name
+  )
+  
+  -- =================================================================
+  -- STEP 2: FINAL OUTPUT - PLAYER PERFORMANCE TABLE
+  -- =================================================================
+  
+  SELECT
+  	League,
+    Country,
+    Team,
+    season,
+    Player,
+    AVG_rating,
+    AVG_finishing,
+ 	AVG_passing,                  
+    AVG_shot_power,                
+  	AVG_positioning,  
+    AVG_stamina,                       
+  	AVG_strength, 
+    AVG_interceptions,           
+  	AVG_marking,                       
+  	AVG_standing_tackle,       
+  	AVG_sliding_tackle
+  FROM Player_perf
+  ORDER BY League, season, AVG_rating DESC;
+  
+  
+/*******************************************************************************
+** FINAL INSIGHTS AND NEXT PHASE
+*******************************************************************************/
+
+-- The resulting dataset provides a comprehensive, season-by-season view
+-- of player performance across major European leagues between 2009 and 2016.
+--
+-- It consolidates offensive, physical, and defensive KPIs, allowing analysts
+-- to explain team-level outcomes (like goals scored or goals conceded)
+-- through individual contributions.
+--
+-- By connecting this table to the team performance dataset in Power BI,
+-- it becomes possible to:
+--   ⚽ Identify which players drove offensive success (finishing, shot power)
+--   🧤 Understand which teams maintained defensive consistency (marking, tackles)
+--   📊 Correlate individual attributes with collective results
+--
+-- Next Phase:
+-- 1️⃣ Export this dataset to CSV format.
+-- 2️⃣ Integrate it into Power BI alongside the team-level dataset.
+-- 3️⃣ Build visual dashboards connecting player and team metrics to reveal:
+--     - The evolution of top-performing players per league/season
+--     - How defensive strength impacted goals conceded
+--     - How attacking efficiency translated into win rates
+-- 4️⃣ Create filters by League, Season, and Team to make the BI dashboard
+--     fully interactive and explanatory for all user contexts.
