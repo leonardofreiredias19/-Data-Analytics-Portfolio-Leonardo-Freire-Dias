@@ -173,7 +173,7 @@ WITH player_perf AS(
   round(CAST(AVG(pa.interceptions) AS Float), 2) AS AVG_interceptions,           -- ability to read and cut passes
   round(CAST(AVG(pa.marking) AS Float), 2) AS AVG_marking,                       -- defensive discipline
   round(CAST(AVG(pa.standing_tackle) AS Float), 2) AS AVG_standing_tackle,       -- controlled defensive duels
-  round(CAST(AVG(pa.sliding_tackle) AS Float), 2) AS AVG_sliding_tackle         -- more aggressive defensive style
+  round(CAST(AVG(pa.sliding_tackle) AS Float), 2) AS AVG_sliding_tackle          -- more aggressive defensive style
   
   
   FROM MATCH m
