@@ -1,0 +1,421 @@
+/***************** Project Objectives ****************/
+
+/*
+This project analyzes the Global Fuel Prices dataset (2020-2026) using SQL.
+The goal is to understand how major global events — COVID-19, the Russia-Ukraine 
+war, and geopolitical tensions — impacted fuel prices across 84 countries.
+
+Dataset: 27,468 records | 84 countries | Weekly frequency | Jan 2020 - Apr 2026
+Columns: date, country, region, income_level, subsidy_level,
+         petrol_usd_liter, diesel_usd_liter, lpg_usd_liter,
+         brent_crude_usd, tax_percentage
+
+Key historical milestones:
+  - 2020-01-06 → Pre-COVID baseline
+  - 2020-04-06 → COVID demand collapse (lowest Brent since 1999)
+  - 2022-02-07 → Last date before Ukraine invasion (Feb 24, 2022)
+  - 2022-06-06 → Peak prices since 2014
+  - 2026-04-06 → Most recent data
+
+1st Objective - Shock & Recovery: which countries were most impacted by COVID
+               and how fast did they recover by the 2022 peak?
+2nd Objective - Subsidies & Anomalies: which countries show abnormally low
+               volatility, indicating government price controls?
+3rd Objective - Ukraine Effect: did the war impact fuel prices differently
+               across regions and income levels?
+4th Objective - Ranking & Mobility: how did the country price ranking change
+               from 2020 to 2022 to 2026?
+*/
+
+
+-------------------------------------------------------------------------------
+-- 1st Objective - Shock & Recovery
+-- Which countries dropped the most during COVID and recovered the most by 2022?
+-------------------------------------------------------------------------------
+
+WITH baseline AS (
+    SELECT country, region, income_level,
+           petrol_usd_liter AS petrol_baseline,
+           diesel_usd_liter AS diesel_baseline
+    FROM global_fuel_prices_2020_2026
+    WHERE date = '2020-01-06'
+),
+covid_low AS (
+    SELECT country,
+           petrol_usd_liter AS petrol_covid,
+           diesel_usd_liter AS diesel_covid
+    FROM global_fuel_prices_2020_2026
+    WHERE date = '2020-04-06'
+),
+peak AS (
+    SELECT country,
+           petrol_usd_liter AS petrol_peak,
+           diesel_usd_liter AS diesel_peak
+    FROM global_fuel_prices_2020_2026
+    WHERE date = '2022-06-06'
+)
+SELECT
+    b.country,
+    b.region,
+    b.income_level,
+
+    -- COVID shock: drop from baseline to covid low
+    ROUND(b.petrol_baseline, 3)                                    AS petrol_jan2020,
+    ROUND(c.petrol_covid, 3)                                       AS petrol_apr2020,
+    ROUND((c.petrol_covid - b.petrol_baseline)
+          / b.petrol_baseline * 100, 1)                            AS petrol_covid_drop_pct,
+
+    -- Recovery: rise from covid low to 2022 peak
+    ROUND(p.petrol_peak, 3)                                        AS petrol_jun2022,
+    ROUND((p.petrol_peak - c.petrol_covid)
+          / c.petrol_covid * 100, 1)                               AS petrol_recovery_pct,
+
+    -- Net change: baseline vs peak
+    ROUND((p.petrol_peak - b.petrol_baseline)
+          / b.petrol_baseline * 100, 1)                            AS petrol_net_change_pct
+
+FROM baseline b
+JOIN covid_low c ON b.country = c.country
+JOIN peak p      ON b.country = p.country
+ORDER BY petrol_covid_drop_pct ASC  -- most impacted by COVID first
+LIMIT 20;
+
+
+-------------------------------------------------------------------------------
+-- 1b - Top 10 countries with fastest recovery (biggest % gain from COVID low to peak)
+-------------------------------------------------------------------------------
+
+WITH baseline AS (
+    SELECT country, region, income_level,
+           petrol_usd_liter AS petrol_baseline
+    FROM global_fuel_prices_2020_2026
+    WHERE date = '2020-01-06'
+),
+covid_low AS (
+    SELECT country,
+           petrol_usd_liter AS petrol_covid
+    FROM global_fuel_prices_2020_2026
+    WHERE date = '2020-04-06'
+),
+peak AS (
+    SELECT country,
+           petrol_usd_liter AS petrol_peak
+    FROM global_fuel_prices_2020_2026
+    WHERE date = '2022-06-06'
+)
+SELECT
+    b.country,
+    b.region,
+    b.income_level,
+    ROUND(c.petrol_covid, 3)                                       AS petrol_covid_low,
+    ROUND(p.petrol_peak, 3)                                        AS petrol_peak,
+    ROUND((p.petrol_peak - c.petrol_covid)
+          / c.petrol_covid * 100, 1)                               AS recovery_pct
+FROM baseline b
+JOIN covid_low c ON b.country = c.country
+JOIN peak p      ON b.country = p.country
+ORDER BY recovery_pct DESC
+LIMIT 10;
+
+
+-------------------------------------------------------------------------------
+-- 2nd Objective - Subsidies & Anomalies
+-- Which countries show abnormally low price volatility (likely subsidized)?
+--
+-- Note: SQLite does not support STDDEV(). We use price_range / avg_petrol
+-- as a proxy for volatility (coefficient of variation simplified).
+-- This is statistically valid for our purpose: subsidized countries have
+-- near-zero amplitude regardless of the metric used.
+-------------------------------------------------------------------------------
+
+WITH volatility AS (
+    SELECT
+        country,
+        region,
+        income_level,
+        subsidy_level,
+        ROUND(AVG(petrol_usd_liter), 3)                            AS avg_petrol,
+        ROUND(MIN(petrol_usd_liter), 3)                            AS min_petrol,
+        ROUND(MAX(petrol_usd_liter), 3)                            AS max_petrol,
+        ROUND(MAX(petrol_usd_liter) - MIN(petrol_usd_liter), 3)    AS price_range,
+
+        -- Volatility proxy: price range relative to average
+        -- Low value = stable prices = likely government-controlled
+        ROUND(
+            (MAX(petrol_usd_liter) - MIN(petrol_usd_liter))
+            / AVG(petrol_usd_liter) * 100, 1
+        )                                                          AS volatility_pct
+    FROM global_fuel_prices_2020_2026
+    GROUP BY country, region, income_level, subsidy_level
+)
+SELECT *
+FROM volatility
+ORDER BY volatility_pct ASC  -- least volatile first (most likely subsidized)
+LIMIT 20;
+
+
+-------------------------------------------------------------------------------
+-- 2b - Countries below global average price across the full period
+-- These are candidates for subsidy or oil-producing nations
+-------------------------------------------------------------------------------
+
+WITH global_avg AS (
+    SELECT ROUND(AVG(petrol_usd_liter), 3) AS global_avg_petrol
+    FROM global_fuel_prices_2020_2026
+),
+country_avg AS (
+    SELECT
+        country,
+        region,
+        income_level,
+        subsidy_level,
+        ROUND(AVG(petrol_usd_liter), 3) AS avg_petrol
+    FROM global_fuel_prices_2020_2026
+    GROUP BY country, region, income_level, subsidy_level
+)
+SELECT
+    c.country,
+    c.region,
+    c.income_level,
+    c.subsidy_level,
+    c.avg_petrol,
+    g.global_avg_petrol,
+    ROUND((c.avg_petrol - g.global_avg_petrol)
+          / g.global_avg_petrol * 100, 1)                          AS diff_from_global_avg_pct
+FROM country_avg c
+CROSS JOIN global_avg g
+WHERE c.avg_petrol < g.global_avg_petrol
+ORDER BY c.avg_petrol ASC;
+
+
+-------------------------------------------------------------------------------
+-- 2c - How did subsidized countries behave during the 2022 peak?
+-- Did their governments absorb the shock or pass it to consumers?
+-- Ordered by war_impact_pct DESC to show the most impacted first.
+-------------------------------------------------------------------------------
+
+WITH pre_war AS (
+    SELECT country, subsidy_level,
+           petrol_usd_liter AS petrol_pre_war
+    FROM global_fuel_prices_2020_2026
+    WHERE date = '2022-02-07'  -- last date before Ukraine invasion
+),
+peak AS (
+    SELECT country,
+           petrol_usd_liter AS petrol_peak
+    FROM global_fuel_prices_2020_2026
+    WHERE date = '2022-06-06'
+)
+SELECT
+    pw.country,
+    pw.subsidy_level,
+    ROUND(pw.petrol_pre_war, 3)                                    AS petrol_pre_war,
+    ROUND(p.petrol_peak, 3)                                        AS petrol_peak,
+    ROUND((p.petrol_peak - pw.petrol_pre_war)
+          / pw.petrol_pre_war * 100, 1)                            AS war_impact_pct
+FROM pre_war pw
+JOIN peak p ON pw.country = p.country
+ORDER BY war_impact_pct DESC  -- most impacted first
+LIMIT 20;
+
+
+-------------------------------------------------------------------------------
+-- 3rd Objective - Ukraine Effect
+-- Did the war impact regions and income levels differently?
+-------------------------------------------------------------------------------
+
+WITH pre_war AS (
+    SELECT country, region, income_level,
+           petrol_usd_liter AS petrol_pre,
+           diesel_usd_liter AS diesel_pre
+    FROM global_fuel_prices_2020_2026
+    WHERE date = '2022-02-07'
+),
+peak AS (
+    SELECT country,
+           petrol_usd_liter AS petrol_peak,
+           diesel_usd_liter AS diesel_peak
+    FROM global_fuel_prices_2020_2026
+    WHERE date = '2022-06-06'
+)
+SELECT
+    pw.region,
+    pw.income_level,
+    COUNT(DISTINCT pw.country)                                     AS total_countries,
+    ROUND(AVG(pw.petrol_pre), 3)                                   AS avg_petrol_pre_war,
+    ROUND(AVG(p.petrol_peak), 3)                                   AS avg_petrol_peak,
+    ROUND((AVG(p.petrol_peak) - AVG(pw.petrol_pre))
+          / AVG(pw.petrol_pre) * 100, 1)                           AS petrol_impact_pct,
+
+    -- Diesel vs petrol: if diesel rose more, confirms logistic impact
+    ROUND(AVG(pw.diesel_pre), 3)                                   AS avg_diesel_pre_war,
+    ROUND(AVG(p.diesel_peak), 3)                                   AS avg_diesel_peak,
+    ROUND((AVG(p.diesel_peak) - AVG(pw.diesel_pre))
+          / AVG(pw.diesel_pre) * 100, 1)                           AS diesel_impact_pct
+
+FROM pre_war pw
+JOIN peak p ON pw.country = p.country
+GROUP BY pw.region, pw.income_level
+ORDER BY petrol_impact_pct DESC;
+
+
+-------------------------------------------------------------------------------
+-- 3b - Diesel vs Petrol: which rose more after the Ukraine invasion?
+-- Diesel rising more = logistic and supply chain impact confirmed
+-------------------------------------------------------------------------------
+
+WITH pre_war AS (
+    SELECT
+        region,
+        ROUND(AVG(petrol_usd_liter), 3) AS avg_petrol_pre,
+        ROUND(AVG(diesel_usd_liter), 3) AS avg_diesel_pre
+    FROM global_fuel_prices_2020_2026
+    WHERE date = '2022-02-07'
+    GROUP BY region
+),
+peak AS (
+    SELECT
+        region,
+        ROUND(AVG(petrol_usd_liter), 3) AS avg_petrol_peak,
+        ROUND(AVG(diesel_usd_liter), 3) AS avg_diesel_peak
+    FROM global_fuel_prices_2020_2026
+    WHERE date = '2022-06-06'
+    GROUP BY region
+)
+SELECT
+    pw.region,
+    ROUND((p.avg_petrol_peak - pw.avg_petrol_pre)
+          / pw.avg_petrol_pre * 100, 1)                            AS petrol_rise_pct,
+    ROUND((p.avg_diesel_peak - pw.avg_diesel_pre)
+          / pw.avg_diesel_pre * 100, 1)                            AS diesel_rise_pct,
+    CASE
+        WHEN (p.avg_diesel_peak - pw.avg_diesel_pre) / pw.avg_diesel_pre >
+             (p.avg_petrol_peak - pw.avg_petrol_pre) / pw.avg_petrol_pre
+        THEN 'Diesel rose more — logistic impact confirmed'
+        ELSE 'Petrol rose more — consumer demand driver'
+    END AS interpretation
+FROM pre_war pw
+JOIN peak p ON pw.region = p.region
+ORDER BY diesel_rise_pct DESC;
+
+
+-------------------------------------------------------------------------------
+-- 4th Objective - Ranking & Mobility
+-- How did the country price ranking change from 2020 to 2022 to 2026?
+--
+-- Fix applied: corrected typo '2020-01-061=' -> '2020-01-06'
+-- This was causing all petrol_2020 and rank_2020 values to return NULL.
+-------------------------------------------------------------------------------
+
+WITH ranked AS (
+    SELECT
+        country,
+        region,
+        income_level,
+        date,
+        petrol_usd_liter,
+        RANK() OVER (
+            PARTITION BY date
+            ORDER BY petrol_usd_liter DESC
+        ) AS price_rank
+    FROM global_fuel_prices_2020_2026
+    WHERE date IN ('2020-01-06', '2022-06-06', '2026-04-06')  -- typo fixed
+),
+pivoted AS (
+    SELECT
+        country,
+        region,
+        income_level,
+        MAX(CASE WHEN date = '2020-01-06' THEN petrol_usd_liter END) AS petrol_2020,
+        MAX(CASE WHEN date = '2022-06-06' THEN petrol_usd_liter END) AS petrol_2022,
+        MAX(CASE WHEN date = '2026-04-06' THEN petrol_usd_liter END) AS petrol_2026,
+        MAX(CASE WHEN date = '2020-01-06' THEN price_rank END)       AS rank_2020,
+        MAX(CASE WHEN date = '2022-06-06' THEN price_rank END)       AS rank_2022,
+        MAX(CASE WHEN date = '2026-04-06' THEN price_rank END)       AS rank_2026
+    FROM ranked
+    GROUP BY country, region, income_level
+)
+SELECT
+    country,
+    region,
+    income_level,
+    ROUND(petrol_2020, 3)                                          AS petrol_2020,
+    ROUND(petrol_2022, 3)                                          AS petrol_2022,
+    ROUND(petrol_2026, 3)                                          AS petrol_2026,
+    rank_2020,
+    rank_2022,
+    rank_2026,
+
+    -- Rank movement: negative = rose in ranking (got relatively more expensive)
+    --                positive = dropped in ranking (got relatively cheaper)
+    (rank_2026 - rank_2020)                                        AS rank_movement_total,
+
+    CASE
+        WHEN (rank_2026 - rank_2020) < -10 THEN 'Major rise in ranking'
+        WHEN (rank_2026 - rank_2020) < 0   THEN 'Moderate rise'
+        WHEN (rank_2026 - rank_2020) = 0   THEN 'Stable'
+        WHEN (rank_2026 - rank_2020) < 10  THEN 'Moderate drop'
+        ELSE 'Major drop in ranking'
+    END AS ranking_trend
+
+FROM pivoted
+ORDER BY rank_movement_total ASC  -- biggest risers first
+LIMIT 30;
+
+
+-------------------------------------------------------------------------------
+-- 4b - Top 10 most expensive countries in each snapshot
+-------------------------------------------------------------------------------
+
+WITH ranked AS (
+    SELECT
+        country,
+        region,
+        income_level,
+        subsidy_level,
+        date,
+        petrol_usd_liter,
+        RANK() OVER (
+            PARTITION BY date
+            ORDER BY petrol_usd_liter DESC
+        ) AS price_rank
+    FROM global_fuel_prices_2020_2026
+    WHERE date IN ('2020-01-06', '2022-06-06', '2026-04-06')
+)
+SELECT *
+FROM ranked
+WHERE price_rank <= 10
+ORDER BY date, price_rank;
+
+
+/*******************************************************************************
+** FINAL ANALYSIS AND INSIGHTS - GLOBAL FUEL PRICES 2020-2026
+*******************************************************************************/
+
+-- 1. SHOCK & RECOVERY (Objective 1)
+-- The COVID-19 pandemic caused Brent crude to reach its lowest level since 1999
+-- in April 2020. Countries most dependent on fuel imports saw the sharpest drops.
+-- By June 2022, prices had not only recovered but exceeded pre-COVID levels
+-- in most countries, driven by post-pandemic demand and the Ukraine war.
+
+-- 2. SUBSIDIES & ANOMALIES (Objective 2)
+-- Countries with Very High and High subsidy levels (e.g. Venezuela, Iran,
+-- Saudi Arabia) show near-zero volatility_pct — prices barely moved even during
+-- the 2022 peak. This confirms government absorption of market shocks.
+-- Note: SQLite does not support STDDEV(). The price_range / avg_petrol proxy
+-- is statistically valid for identifying price-controlled countries, as
+-- subsidized markets show near-zero amplitude regardless of the metric.
+
+-- 3. UKRAINE EFFECT (Objective 3)
+-- Europe was disproportionately impacted compared to other regions due to
+-- its dependence on Russian gas and oil. Diesel rose more than petrol
+-- in most regions, confirming the logistic and supply chain dimension of the crisis.
+-- High income countries absorbed the shock better than Low income ones
+-- due to stronger fiscal capacity for subsidies and strategic reserves.
+
+-- 4. RANKING & MOBILITY (Objective 4)
+-- Fix: corrected typo '2020-01-061=' to '2020-01-06' which was causing
+-- all 2020 values to return NULL.
+-- European countries dominated the top rankings in 2022 due to the war premium.
+-- Oil-producing nations with subsidies remained consistently at the bottom.
+-- The biggest movers reveal the countries most exposed to geopolitical risk.
