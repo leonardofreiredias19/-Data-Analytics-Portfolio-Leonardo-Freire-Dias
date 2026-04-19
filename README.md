@@ -19,27 +19,27 @@ Economist and Data Analyst with a focus on transforming data into strategic narr
 #### 🛒 Retail
 | Analysis | Tools | One-Page Report |
 |---|---|---|
-| [Amazon India — Tech Market Share](./varejo/amazon-india-market-share.sql) | SQL, Excel | [📄 View PDF](#) |
+| [Amazon India — Tech Market Share](./retail/amazon-india-market-share-sql) | SQL, Excel | [📄 View PDF](#) |
 
 #### ⚽ Sport
 | Analysis | Tools | One-Page Report |
 |---|---|---|
-| [Europe Soccer — Performance Analysis](./esporte/europe-soccer.sql) | SQL | [📄 View PDF](#) |
+| [Europe Soccer — Performance Analysis](./sports/EUROPE%20SOCCER.sql) | SQL | [📄 View PDF](#) |
 
 #### ⚡ Energy
 | Analysis | Tools | One-Page Report |
 |---|---|---|
-| [Global Fuel Prices 2020–2026](./energia/global-fuel-prices.sql) | SQL | [📄 View PDF](#) |
+| [Global Fuel Prices 2020–2026](./energy/Global%20Fuel%20Prices%202020%E2%80%932026) | SQL | [📄 View PDF](#) |
 
 #### 🏦 Financial
 | Analysis | Tools | One-Page Report |
 |---|---|---|
-| [The World's 100 Largest Banks](./financeiro/worlds-largest-banks.sql) | SQL | [📄 View PDF](#) |
+| [The World's 100 Largest Banks](./finance/the%20worlds%20100%20largest%20banks.sql) | SQL | [📄 View PDF](#) |
 
 #### 🎮 Market
 | Analysis | Tools | One-Page Report |
 |---|---|---|
-| [Video Game Sales — Market & Publishers](./mercado/video-games-sales.sql) | SQL | [📄 View PDF](#) |
+| [Video Game Sales — Market & Publishers](./market/Case_Sales_Video_Games.sql) | SQL | [📄 View PDF](#) |
 
 ### 📬 Contact
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Leonardo%20Freire%20Dias-0077B5?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/leonardo-freire-dias-125983207/)
@@ -62,27 +62,27 @@ Economista e Analista de Dados com foco em transformar dados em narrativas estra
 #### 🛒 Varejo
 | Análise | Ferramentas | One-Page Report |
 |---|---|---|
-| [Amazon India — Market Share de Tecnologia](./varejo/amazon-india-market-share.sql) | SQL, Excel | [📄 Ver PDF](#) |
+| [Amazon India — Market Share de Tecnologia](./retail/amazon-india-market-share-sql) | SQL, Excel | [📄 Ver PDF](#) |
 
 #### ⚽ Esporte
 | Análise | Ferramentas | One-Page Report |
 |---|---|---|
-| [Futebol Europeu — Análise de Desempenho](./esporte/europe-soccer.sql) | SQL | [📄 Ver PDF](#) |
+| [Futebol Europeu — Análise de Desempenho](./sports/EUROPE%20SOCCER.sql) | SQL | [📄 Ver PDF](#) |
 
 #### ⚡ Energia
 | Análise | Ferramentas | One-Page Report |
 |---|---|---|
-| [Preços Globais de Combustível 2020–2026](./energia/global-fuel-prices.sql) | SQL | [📄 Ver PDF](#) |
+| [Preços Globais de Combustível 2020–2026](./energy/Global%20Fuel%20Prices%202020%E2%80%932026) | SQL | [📄 Ver PDF](#) |
 
 #### 🏦 Financeiro
 | Análise | Ferramentas | One-Page Report |
 |---|---|---|
-| [Os 100 Maiores Bancos do Mundo](./financeiro/worlds-largest-banks.sql) | SQL | [📄 Ver PDF](#) |
+| [Os 100 Maiores Bancos do Mundo](./finance/the%20worlds%20100%20largest%20banks.sql) | SQL | [📄 Ver PDF](#) |
 
 #### 🎮 Mercado
 | Análise | Ferramentas | One-Page Report |
 |---|---|---|
-| [Vendas de Video Games — Mercado & Publishers](./mercado/video-games-sales.sql) | SQL | [📄 Ver PDF](#) |
+| [Vendas de Video Games — Mercado & Publishers](./market/Case_Sales_Video_Games.sql) | SQL | [📄 Ver PDF](#) |
 
 ### 📬 Contato
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Leonardo%20Freire%20Dias-0077B5?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/leonardo-freire-dias-125983207/)
