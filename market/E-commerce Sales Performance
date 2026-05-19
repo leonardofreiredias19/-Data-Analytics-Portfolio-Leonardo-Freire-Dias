@@ -1,0 +1,134 @@
+-- ============================================================
+-- PROJECT 1 — E-commerce Sales Performance
+-- SQL Script — Analytical Base with MoM and Regional Ranking
+-- ============================================================
+-- INSTRUCTIONS:
+-- 1. Import Online_Sales_Data.csv in DB Browser as table "sales"
+-- 2. Run each CTE individually to validate before chaining
+-- 3. Expected validation at the end:
+--    - Total rows: 240
+--    - Electronics Jan: revenue ~7,999 | revenue_previous NULL
+--    - Electronics Feb: mom_variation_pct ~ -63.8
+--    - North America / Electronics: ranking = 1
+--    - Asia / Sports: ranking = 1
+-- ============================================================
+
+
+-- ── CTE 1: CLEAN BASE ────────────────────────────────────────
+-- Goal: rename columns, cast the date and create the month
+-- column in YYYY-MM format — essential for the Power BI time
+-- axis and for correct grouping in the LAG function.
+WITH base AS (
+  SELECT
+    "Transaction ID"            AS id,
+    DATE("Date")                AS date,
+    strftime('%Y-%m', "Date")   AS month,
+    "Product Category"          AS category,
+    "Region"                    AS region,
+    "Payment Method"            AS payment_method,
+    "Units Sold"                AS units,
+    "Unit Price"                AS unit_price,
+    "Total Revenue"             AS revenue
+  FROM sales
+),
+
+
+-- ── CTE 2: REVENUE AGGREGATED BY CATEGORY AND MONTH ──────────
+-- Goal: create the right granularity for LAG to work correctly.
+-- Here we go from 240 rows (transactions) to 1 row per
+-- category per month — which is what we need to compare
+-- "this month" vs "previous month".
+monthly_revenue AS (
+  SELECT
+    category,
+    month,
+    SUM(revenue) AS monthly_rev
+  FROM base
+  GROUP BY category, month
+),
+
+
+-- ── CTE 3: MOM VARIATION WITH LAG() ──────────────────────────
+-- Goal: for each category and month, retrieve the previous
+-- month revenue and calculate the percentage variation.
+--
+-- How LAG works here:
+--   LAG(monthly_rev) OVER (PARTITION BY category ORDER BY month)
+--   → "within the same category (PARTITION BY),
+--      get the value from the previous row ordered by month"
+--
+-- PARTITION BY category → resets LAG for each category.
+--   Without it, Jan/Books LAG would pick Dec/Electronics — wrong.
+--
+-- ORDER BY month → defines that "previous" = chronologically
+--   earlier month. Without it SQL wouldn't know which row is "before".
+--
+-- First row of each category → returns NULL in LAG.
+--   Correct: there is no previous month to compare against.
+mom AS (
+  SELECT
+    category,
+    month,
+    monthly_rev,
+    LAG(monthly_rev)
+      OVER (PARTITION BY category ORDER BY month)      AS revenue_previous,
+    ROUND(
+      (monthly_rev
+       - LAG(monthly_rev) OVER (PARTITION BY category ORDER BY month))
+      * 100.0
+      / LAG(monthly_rev) OVER (PARTITION BY category ORDER BY month),
+    2)                                                 AS mom_variation_pct
+  FROM monthly_revenue
+),
+
+
+-- ── CTE 4: CATEGORY RANKING BY REVENUE WITHIN EACH REGION ────
+-- Goal: for each region, rank categories from highest
+-- to lowest revenue.
+--
+-- RANK() OVER (PARTITION BY region ORDER BY SUM(revenue) DESC)
+--   → "within each region (PARTITION BY),
+--      assign position from highest to lowest (ORDER BY DESC)"
+--
+-- PARTITION BY region → ranking resets for each region.
+--   Without it, there would be a global ranking across all
+--   categories from all regions — not what we want.
+regional_ranking AS (
+  SELECT
+    region,
+    category,
+    SUM(revenue)                                              AS regional_revenue,
+    RANK()
+      OVER (PARTITION BY region ORDER BY SUM(revenue) DESC)  AS ranking
+  FROM base
+  GROUP BY region, category
+)
+
+
+-- ── FINAL QUERY: JOIN ALL LAYERS AT TRANSACTION GRANULARITY ──
+-- LEFT JOIN ensures all 240 base rows are returned.
+-- Rows without a previous month (first month of each category)
+-- will have NULL in revenue_previous and mom_variation_pct — correct.
+SELECT
+  b.id,
+  b.date,
+  b.month,
+  b.category,
+  b.region,
+  b.payment_method,
+  b.units,
+  b.unit_price,
+  b.revenue,
+  m.monthly_rev,
+  m.revenue_previous,
+  m.mom_variation_pct,
+  r.regional_revenue,
+  r.ranking             AS category_ranking_in_region
+FROM base b
+LEFT JOIN mom m
+  ON b.category = m.category
+ AND b.month    = m.month
+LEFT JOIN regional_ranking r
+  ON b.category = r.category
+ AND b.region   = r.region
+ORDER BY b.date, b.category;
