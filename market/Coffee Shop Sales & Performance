@@ -3,10 +3,11 @@
 -- SQL Script — Analytical Base with Shift, MoM and Store Ranking
 -- ============================================================
 -- INSTRUCTIONS:
--- 1. Import Coffee_Shop_Sales.xlsx in DB Browser as table
---    "Coffee Shop Sales"
--- 2. Run each CTE individually to validate before chaining
--- 3. Expected validation at the end:
+-- 1. Use coffee_shop_clean.csv as source — date already in
+--    YYYY-MM-DD format, ready for SQLite.
+-- 2. Import in DB Browser as table "coffee_shop_clean"
+-- 3. Run each CTE individually to validate before chaining
+-- 4. Expected validation at the end:
 --    - Total rows: 149,116
 --    - Lower Manhattan / Morning: pct_store ~ 62.6
 --    - Astoria / Evening: pct_store ~ 21.0
@@ -17,30 +18,26 @@
 
 
 -- ── CTE 1: CLEAN BASE ────────────────────────────────────────
--- Goal: rename columns, fix date format, cast unit_price to
--- REAL and create three derived columns:
---   · date  → YYYY-MM-DD (rebuilt from MM/DD/YYYY source)
+-- Goal: rename columns, cast unit_price to REAL and create
+-- three derived columns:
 --   · month → YYYY-MM    (for MoM grouping and Power BI time axis)
 --   · hour  → integer    (for intraday line chart in Power BI)
 --   · shift → Morning / Afternoon / Night (core analytical dimension)
+--
+-- Why transaction_date is used directly:
+--   coffee_shop_clean.csv already stores dates as YYYY-MM-DD text.
+--   No conversion needed — substr(date, 1, 7) extracts YYYY-MM
+--   for the month column.
 --
 -- Why REPLACE on unit_price:
 --   Source file uses Brazilian locale — decimal separator is comma.
 --   SQLite reads "3,75" as text and truncates to 3 on multiplication.
 --   REPLACE swaps comma for dot before CAST to REAL fixes this.
---
--- Why substr for date:
---   Source format is MM/DD/YYYY. DATE() and strftime() only work
---   natively with YYYY-MM-DD. substr rebuilds the string in the
---   correct order without any external function.
 WITH base AS (
   SELECT
     transaction_id                                        AS id,
-    substr(transaction_date, 7, 4) || '-' ||
-    substr(transaction_date, 1, 2) || '-' ||
-    substr(transaction_date, 4, 2)                        AS date,
-    substr(transaction_date, 7, 4) || '-' ||
-    substr(transaction_date, 1, 2)                        AS month,
+    transaction_date                                      AS date,
+    substr(transaction_date, 1, 7)                        AS month,
     transaction_qty                                       AS qty,
     store_location                                        AS store,
     CAST(REPLACE(unit_price, ',', '.') AS REAL)           AS unit_price,
@@ -55,7 +52,7 @@ WITH base AS (
       WHEN CAST(SUBSTR(transaction_time, 1, 2) AS INT) < 17 THEN 'Afternoon'
       ELSE 'Night'
     END                                                   AS shift
-  FROM "Coffee Shop Sales"
+  FROM coffee_shop_clean
 ),
 
 
@@ -63,8 +60,7 @@ WITH base AS (
 -- Goal: aggregate revenue, quantity, average price and
 -- transaction count at the product_detail level.
 -- Granularity: 1 row per category + product + product_detail.
--- Base for: scatter chart (avg_price × qty_total) and
--- The Aces ranking in Power BI.
+-- Base for: The Aces ranking in Power BI.
 kpis_product AS (
   SELECT
     category,
@@ -198,14 +194,14 @@ SELECT
   m.mon_variation_pct
 FROM base b
 LEFT JOIN kpis_shift_store t
-  ON b.store  = t.store
- AND b.shift  = t.shift
+  ON b.store = t.store
+ AND b.shift = t.shift
 LEFT JOIN kpis_product k
   ON b.product_detail = k.product_detail
 LEFT JOIN ranking_product r
   ON b.store        = r.store
  AND b.product_detail = r.product_detail
 LEFT JOIN mon m
-  ON b.store  = m.store
- AND b.month  = m.month
+  ON b.store = m.store
+ AND b.month = m.month
 ORDER BY b.date, b.store;
