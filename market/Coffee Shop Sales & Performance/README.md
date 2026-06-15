@@ -5,6 +5,12 @@
 
 ---
 
+## 🖼️ Dashboard Preview
+
+[📄 Ver Dashboard em PDF](./coffee_shop_dashboard.pdf)
+
+---
+
 ## 🧩 Problema de Negócio
 
 Identificar o padrão de especialização de cada loja por turno (manhã, tarde, noite) e definir estratégia de estoque e operação baseada em volume de tráfego — não em ticket médio.
@@ -54,6 +60,7 @@ Prioridade de estoque nos **produtos Ace** de cada loja no turno de pico — ide
 ```
 market/Coffee Shop Sales & Performance/
 ├── coffee_shop_performance.pbix   — dashboard Power BI
+├── coffee_shop_dashboard.pdf      — preview do dashboard
 └── README.md                      — documentação
 ```
 

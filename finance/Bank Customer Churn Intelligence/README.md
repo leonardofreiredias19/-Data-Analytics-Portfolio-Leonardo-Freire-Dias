@@ -5,6 +5,12 @@
 
 ---
 
+## 🖼️ Dashboard Preview
+
+[📄 Ver Dashboard em PDF](./churn_intelligence_dashboard.pdf)
+
+---
+
 ## 🧩 Problema de Negócio
 
 Identificar o perfil de clientes com maior risco de saída, quantificar o retorno não obtido e definir estratégia de retenção baseada em dados.
@@ -64,8 +70,9 @@ base_clientes
 
 ```
 finance/Bank Customer Churn Intelligence/
-├── churn_intelligence.sql   — query completa com 4 CTEs
-└── README.md                — documentação
+├── churn_intelligence.sql            — query completa com 4 CTEs
+├── churn_intelligence_dashboard.pdf  — preview do dashboard Power BI
+└── README.md                         — documentação
 ```
 
 ---
