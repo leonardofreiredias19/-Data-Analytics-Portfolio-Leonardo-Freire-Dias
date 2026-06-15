@@ -51,6 +51,8 @@ Identificar o padrão de especialização de cada loja por turno (manhã, tarde,
 | Astoria | Tarde / Noite | Cardápio e promoções voltados ao fim do dia |
 | Hell's Kitchen | Distribuído | Operação flexível com foco no horário de maior margem |
 
+Prioridade de estoque nos **produtos Ace** de cada loja no turno de pico — identificados por volume de transações e recorrência de compra.
+
 ---
 
 ## 📁 Estrutura do Projeto

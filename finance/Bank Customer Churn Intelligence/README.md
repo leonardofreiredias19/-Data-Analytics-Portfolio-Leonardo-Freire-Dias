@@ -86,6 +86,8 @@ Foco em clientes com:
 - Saldo acima de **$100.000**
 - Localizados na **Alemanha** ou **França**
 
+Esses clientes representam o maior LTV potencial da base e, ao mesmo tempo, o maior risco de churn — tornando a intervenção proativa o único movimento com ROI positivo garantido.
+
 ---
 
 <sub>Dataset: Kaggle — Bank Customer Churn | Análise: Leonardo Freire Dias</sub>
